@@ -22,3 +22,5 @@ images_cache
 2. Haml
 3. Coffee-script
 4. Sass
+
+Предоставьте Ваше решение как pull request на github.
