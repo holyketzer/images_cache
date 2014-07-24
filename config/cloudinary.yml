@@ -1,0 +1,18 @@
+development:
+  cloud_name: wd13
+  api_key: '596728589936327'
+  api_secret: w63Kfzyiw_sFFIvjZ2oypu6ilCE
+  enhance_image_tag: true
+  static_image_support: false
+production:
+  cloud_name: wd13
+  api_key: '596728589936327'
+  api_secret: w63Kfzyiw_sFFIvjZ2oypu6ilCE
+  enhance_image_tag: true
+  static_image_support: true
+test:
+  cloud_name: wd13
+  api_key: '596728589936327'
+  api_secret: w63Kfzyiw_sFFIvjZ2oypu6ilCE
+  enhance_image_tag: true
+  static_image_support: false
