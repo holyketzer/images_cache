@@ -1,0 +1,10 @@
+%p#notice
+  = notice
+
+= @product.name
+%br
+- if @product.image
+  = image_tag @product.image_url
+%br
+= link_to 'Edit', edit_product_path(@product)
+= link_to 'Back', products_path

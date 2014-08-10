@@ -15,6 +15,7 @@ gem 'coffee-rails', '~> 4.0.0'
 gem 'therubyracer',  platforms: :ruby
 
 gem 'haml'
+gem 'simple_form'
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
