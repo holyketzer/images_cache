@@ -1,0 +1,9 @@
+# Location: config/redis.yml
+development:
+  url: redis://127.0.0.1:6379/1
+test:
+  url: redis://127.0.0.1:6379/15
+production:
+  host: data.myapp.com
+  port: 6333
+  db: 0

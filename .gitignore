@@ -16,7 +16,7 @@
 .idea
 *.swp
 /public/assets/
-/public/images/
+/public/images/cache/*.*
 /public/uploads/
 /public/system/
 /log/

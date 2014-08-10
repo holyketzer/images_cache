@@ -3,15 +3,15 @@ class Image < ActiveRecord::Base
   include Sidetiq::Schedulable
 
   def redis
-    @redis ||= Redis.new
+    $redis
   end
 
   recurrence { minutely(1) }
 
-  REDIS_CACHE_KEY = 'image_cache'
-  REDIS_IS_CACHED_KEY = 'image_has_cache'
-  CACHE_PATH = '/images/cache'
-  MAX_CACHE_SIZE = 5
+  REDIS_CACHE_KEY = Rails.application.config.cloudinary_redis_cache_key
+  REDIS_IS_CACHED_KEY = Rails.application.config.cloudinary_redis_is_cached_key
+  CACHE_PATH = Rails.application.config.cloudinary_cache_path
+  MAX_CACHE_SIZE = Rails.application.config.cloudinary_max_cache_size
 
   belongs_to :imageable, polymorphic: true
 
@@ -32,8 +32,8 @@ class Image < ActiveRecord::Base
 
   def popular?
     cache_size = redis.zcard(REDIS_CACHE_KEY)
-    index = redis.zrank(REDIS_CACHE_KEY, id)
-    index >= cache_size - MAX_CACHE_SIZE
+    index = redis.zrank(REDIS_CACHE_KEY, id) || false
+    index && (index >= cache_size - MAX_CACHE_SIZE)
   end
 
   # Sidetiq worker method

@@ -26,8 +26,6 @@ gem 'jbuilder', '~> 2.0'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0',          group: :doc
 
-gem 'rspec-rails'
-gem 'factory_girl_rails'
 gem 'carrierwave'
 gem 'mini_magick'
 
@@ -36,15 +34,15 @@ gem 'redis'
 gem 'sidekiq'
 gem 'sidetiq'
 
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
+group :development, :test do
+  gem 'launchy'
+  gem 'rspec-rails'
+  gem 'pry-rails'
+  gem 'pry-plus'
+end
 
-# Use unicorn as the app server
-# gem 'unicorn'
-
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
-
-# Use debugger
-# gem 'debugger', group: [:development, :test]
+group :test do
+  gem 'shoulda-matchers'
+  gem 'factory_girl_rails'
+end
 

@@ -36,4 +36,9 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # config.cloudinary_redis_cache_key = 'image_cache'
+  # config.cloudinary_redis_is_cached_key = 'image_has_cache'
+  config.cloudinary_cache_path = '/images/cache/test'
+  config.cloudinary_max_cache_size = 2
 end

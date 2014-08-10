@@ -24,5 +24,10 @@ module ImagesCache
     Sidekiq.configure_server do |config|
       config.poll_interval = 5
     end
+
+    config.cloudinary_redis_cache_key = 'image_cache'
+    config.cloudinary_redis_is_cached_key = 'image_has_cache'
+    config.cloudinary_cache_path = '/images/cache'
+    config.cloudinary_max_cache_size = 500
   end
 end
