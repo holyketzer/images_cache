@@ -10,6 +10,7 @@ class ProductsController < ApplicationController
 
   def new
     @product = Product.new
+    @product.build_image
   end
 
   def edit
@@ -48,10 +49,11 @@ class ProductsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_product
       @product = Product.find(params[:id])
+      @product.build_image unless @product.image
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def product_params
-      params.require(:product).permit(:name, :image)
+      params.require(:product).permit(:name, image_attributes: [:id, :imageable_id, :cloudinary])
     end
 end

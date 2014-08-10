@@ -1,4 +1,4 @@
-= simple_form_for(@product) do |f|
+= simple_form_for @product, html: { multipart: true } do |f|
   - if @product.errors.any?
     %div#error_explanation
       %h2
@@ -11,7 +11,14 @@
             = message
 
   = f.input :name , required: true, input_html: { size: 50 }
-  = f.input :image, label: 'Select image', required: true
+
+  - if @product.image.persisted?
+    .control-group
+      = f.label :image
+      .controls
+        = image_tag @product.image.url(:mini)
+  = f.simple_fields_for :image do |i|
+    = i.input :cloudinary, as: :file, label: 'Select image'
 
   %div.actions
     = f.submit

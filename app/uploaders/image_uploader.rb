@@ -1,4 +1,4 @@
-class ProductImageUploader < CloudinaryUploader
+class ImageUploader < CloudinaryUploader
   version :mini do
     process resize_to_fill: [80, 80]
     process :convert => 'jpg'

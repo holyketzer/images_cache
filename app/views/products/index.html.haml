@@ -14,7 +14,7 @@
           = product.name
         %td
           - if product.image
-            = image_tag product.image_url(:mini)
+            = image_tag product.image.url(:mini)
         %td
           = link_to 'Show', product
         %td
