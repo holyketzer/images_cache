@@ -2,24 +2,38 @@ class Image < ActiveRecord::Base
   include Sidekiq::Worker
   include Sidetiq::Schedulable
 
+  def redis
+    @redis ||= Redis.new
+  end
+
   recurrence { minutely(1) }
 
-  REDIS_KEY = 'image_cache'
+  REDIS_CACHE_KEY = 'image_cache'
+  REDIS_IS_CACHED_KEY = 'image_has_cache'
   CACHE_PATH = '/images/cache'
-  CACHE_SIZE = 5
+  MAX_CACHE_SIZE = 5
 
   belongs_to :imageable, polymorphic: true
 
   mount_uploader :cloudinary, ImageUploader
 
   def url(version = :standard)
-    update_popularity
+    update_popularity(id)
     if local
+      mark_as_cached(id)
       local_url(version)
     else
-      self.delay.cache_locally
+      if popular? && !is_cached(id)
+        self.delay.cache_locally
+      end
       cloudinary_url(version)
     end
+  end
+
+  def popular?
+    cache_size = redis.zcard(REDIS_CACHE_KEY)
+    index = redis.zrank(REDIS_CACHE_KEY, id)
+    index >= cache_size - MAX_CACHE_SIZE
   end
 
   # Sidetiq worker method
@@ -30,12 +44,23 @@ class Image < ActiveRecord::Base
   private
 
   def local_url(version)
-    File.join CACHE_PATH, "#{version}_#{self.local}"
+    File.join CACHE_PATH, "#{version}_#{local}"
   end
 
-  def update_popularity
-    redis = Redis.new
-    redis.zincrby(REDIS_KEY, 1, id)
+  def update_popularity(id)
+    redis.zincrby(REDIS_CACHE_KEY, 1, id)
+  end
+
+  def mark_as_cached(id)
+    redis.sadd(REDIS_IS_CACHED_KEY, id)
+  end
+
+  def mark_as_uncached(id)
+    redis.srem(REDIS_IS_CACHED_KEY, id)
+  end
+
+  def is_cached(id)
+     redis.sismember(REDIS_IS_CACHED_KEY, id)
   end
 
   def build_file_path(file_name, version)
@@ -47,7 +72,7 @@ class Image < ActiveRecord::Base
 
     # Download all versions of image
     file_name = File.basename(URI.parse(cloudinary_url).path)
-    logger.info "Downloading file #{file_name} for image##{self.id}"
+    logger.info "Downloading file #{file_name} for image##{id}"
 
     cloudinary.versions.each_key do |version|
       url = cloudinary_url(version)
@@ -60,38 +85,39 @@ class Image < ActiveRecord::Base
 
     # Save in local only file name without version
     self.update!(local: file_name)
+    mark_as_cached(id)
   end
 
   def cleanup_cache
     logger.info 'Cache clean up'
-    redis = Redis.new
-    size = redis.zcard(REDIS_KEY)
-    if size > CACHE_SIZE
-      under_popular_ids = redis.zrange(REDIS_KEY, 0, size - CACHE_SIZE - 1)
+    cache_size = redis.zcard(REDIS_CACHE_KEY)
+    if cache_size > MAX_CACHE_SIZE
+      under_popular_ids = redis.zrange(REDIS_CACHE_KEY, 0, cache_size - MAX_CACHE_SIZE - 1)
       under_popular_ids.each do |id|
-        cleanup_cache_for_image(id, redis)
+        cleanup_cache_for_image(id)
       end
     else
-      logger.info "Cache size=#{size}. There is no cleanup needed"
+      logger.info "Cache size=#{cache_size}. There is no cleanup needed"
     end
   end
 
-  def cleanup_cache_for_image(image_id, redis)
+  def cleanup_cache_for_image(image_id)
     image = Image.find(image_id)
-    logger.info "Removing file #{image.local} of image##{image_id}"
+    if is_cached(image_id)
+      logger.info "Removing file #{image.local} of image##{image_id}"
 
-    image.cloudinary.versions.each_key do |version|
-      file_path = build_file_path(image.local, version)
-      begin
-        File.delete(file_path) if File.exists?(file_path)
-      rescue => e
-        logger.fatal e.inspect
+      image.cloudinary.versions.each_key do |version|
+        file_path = build_file_path(image.local, version)
+        begin
+          File.delete(file_path) if File.exists?(file_path)
+        rescue => e
+          logger.fatal e.inspect
+        end
       end
+      image.update!(local: nil)
+      mark_as_uncached(image_id)
     end
-    image.update!(local: nil)
   rescue ActiveRecord::RecordNotFound
     logger.info 'Image is not in DB more'
-  ensure
-    redis.zrem(REDIS_KEY, image_id)
   end
 end
