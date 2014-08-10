@@ -30,8 +30,10 @@ gem 'rspec-rails'
 gem 'factory_girl_rails'
 gem 'carrierwave'
 gem 'mini_magick'
+
 gem 'cloudinary'
 gem 'redis'
+gem 'sidekiq'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'

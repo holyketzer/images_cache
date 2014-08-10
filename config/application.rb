@@ -19,5 +19,8 @@ module ImagesCache
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
+    Sidekiq.configure_server do |config|
+      config.poll_interval = 1
+    end
   end
 end

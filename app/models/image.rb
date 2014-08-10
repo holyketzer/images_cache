@@ -1,4 +1,6 @@
 class Image < ActiveRecord::Base
+  #include Sidekiq::Worker
+
   REDIS_KEY = 'image_cache'
   CACHE_PATH = '/images/cache'
 
@@ -11,7 +13,7 @@ class Image < ActiveRecord::Base
     if local
       local_url(version)
     else
-      cache_locally
+      self.delay.cache_locally
       cloudinary_url(version)
     end
   end
